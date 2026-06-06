@@ -15,4 +15,5 @@ todo application which is used as go example
   and execute "go mod tidy"  
 - install and configure docker  
 - install and configure goose  
-- run "make help" to see available targets
+- create .env file with settings,  
+  and run "make help" to see available targets

@@ -1,0 +1,99 @@
+package todo_ui
+
+import (
+	todo_ports "RobertTC32/example-demo_hello/src/todo/ports"
+	"log/slog"
+)
+
+templ TodoPage(todos []todo_ports.TodoDTO) {
+	{{ slog.Debug("view-todo_templ::TodoPage() - Executing") }}
+	@BasePage("demo_todo") {
+		<h1 class="text-xl md:text-2xl font-bold text-blue-400">
+			My Simple Todo List
+		</h1>
+		<div class="text-xs md:text-sm italic my-1 md:my-2">
+			This application is created for demonstration purposes only.
+		</div>
+		<!-- daisyUI - Tabs -->
+		<div class="tabs tabs-box my-1 md:my-2">
+			<!-- Tab -->
+			<input type="radio" name="my_tabs_todo" class="tab text-base md:text-lg bg-blue-700" aria-label="List all" checked="checked"/>
+			<div id="my_todo_list" class="tab-content p-3 md:p-6 bg-stone-900 border-white">
+				@TodoList(todos)
+			</div>
+			<div id="my_todo_list-error" class="text-red-700"></div>
+			<!-- Tab -->
+			<input type="radio" name="my_tabs_todo" class="tab text-base md:text-lg bg-blue-700 ml-2 md:ml-4" aria-label="Add new"/>
+			<div class="tab-content p-3 md:p-6 bg-stone-900 border-white">
+				<p>
+					<span>Which task do you want to add?</span>
+					<br/>
+					<span>(maximum 20 todo's can be stored in total)</span>
+				</p>
+				<p id="my_todo_add" class="pt-2 md:pt-4">
+					<form
+						hx-post="/todo"
+						hx-target="#my_todo_list"
+						hx-target-5*="#my_todo_add-error"
+						hx-on::before-request="document.getElementById('my_todo_add-error').innerHTML='';"
+						hx-on::after-request="this.reset()"
+					>
+						<!-- daisyUI - Text Input Field -->
+						<input id="newTitle" name="title" type="text" placeholder="Type here" class="input"/>
+						<!-- daisyUI - Button -->
+						<input type="reset" class="btn btn-xs md:btn-sm m-2 md:m-4 bg-blue-700 rounded-lg border-white" value="Cancel"/>
+						<input name="action_insert" type="submit" class="btn btn-xs md:btn-sm m-2 md:m-4 bg-blue-700 rounded-lg border-white" value="Save"/>
+					</form>
+				</p>
+				<div id="my_todo_add-error" class="text-red-700"></div>
+			</div>
+		</div>
+	}
+}
+
+templ TodoList(todos []todo_ports.TodoDTO) {
+	{{ slog.Debug("view-todo_templ::TodoList() - Executing") }}
+	<!-- daisyUI - Table -->
+	<table class="table">
+		<thead>
+			<tr class="bg-blue-500 text-white">
+				<th>#</th>
+				<th>Task</th>
+				<th>Status</th>
+				<th>Action</th>
+			</tr>
+		</thead>
+		<tbody>
+			for i, todo := range todos {
+				<tr>
+					<th>{ i+1 }</th>
+					<td>{ todo.Title }</td>
+					<td>
+						if todo.Completed {
+							<span>DONE at { todo.CompletedAt.Format("2006-01-02 15:04") }</span>
+						} else {
+							<span>TODO from { todo.CreatedAt.Format("2006-01-02 15:04") }</span>
+						}
+					</td>
+					<td>
+						<form
+							hx-post="/todo"
+							hx-target="#my_todo_list"
+							hx-target-5*="#my_todo_list-error"
+							hx-on::before-request="document.getElementById('my_todo_list-error').innerHTML='';"
+							hx-confirm="Are you sure?"
+						>
+							<input type="hidden" name="id" value={ todo.Id }/>
+							<input type="hidden" name="version" value={ todo.Version }/>
+							<!-- daisyUI - Button -->
+							<input name="action_delete" type="submit" class="btn btn-xs md:btn-sm bg-blue-700 rounded-lg border-white" value="Delete"/>
+							if ! todo.Completed {
+								<input name="action_update" type="submit" class="btn btn-xs md:btn-sm ml-2 md:ml-4 bg-blue-700 rounded-lg border-white" value="Done"/>
+							}
+						</form>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}

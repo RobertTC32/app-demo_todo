@@ -12,23 +12,22 @@ import (
 )
 
 type Server struct {
-	hs *http.Server
+	Hs *http.Server
 }
 
 func NewServer(router *http.ServeMux) (*Server, error) {
-	fs := http.FileServer(http.Dir("./public"))
-	router.Handle("GET /public/", http.StripPrefix("/public/", fs))
-	//
+	host := os.Getenv("APP_HOST")
 	port := os.Getenv("APP_PORT")
 	if IsRunningInDockerContainer() {
 		// internal port is always 80; see dockerfile for port mapping
+		host = ""
 		port = "80"
 	}
 	srv := http.Server{
-		Addr:    ":" + port,
+		Addr:    host + ":" + port,
 		Handler: router,
 	}
-	return &Server{hs: &srv}, nil
+	return &Server{Hs: &srv}, nil
 }
 
 func (s *Server) RunServer(
@@ -39,7 +38,7 @@ func (s *Server) RunServer(
 	serverErr := make(chan error, 1)
 	go func() {
 		slog.Debug("server::RunServer() - Started listening")
-		if err := s.hs.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := s.Hs.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			serverErr <- err
 		}
 		close(serverErr)
@@ -58,8 +57,8 @@ func (s *Server) RunServer(
 		context.Background(),
 		shutdownTimeout)
 	defer cancel()
-	if err := s.hs.Shutdown(shutdownCtx); err != nil {
-		if closeErr := s.hs.Close(); closeErr != nil {
+	if err := s.Hs.Shutdown(shutdownCtx); err != nil {
+		if closeErr := s.Hs.Close(); closeErr != nil {
 			return errors.Join(err, closeErr)
 		}
 		return err

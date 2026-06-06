@@ -1,0 +1,1 @@
+these pages will be used as cdn

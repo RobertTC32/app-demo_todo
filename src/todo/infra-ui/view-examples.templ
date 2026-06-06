@@ -1,0 +1,36 @@
+package todo_ui
+
+import "time"
+
+css Base() {
+	height: 100vh;
+	background-color: royalblue;
+	color: aliceblue;
+	font-family: Arial;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+script alertme() {
+	alert("hello in dialog box");
+}
+
+templ HelloPage(fullname string) {
+	<html>
+		<head>
+			<title>Hello</title>
+		</head>
+		<body class={ Base() }>
+			@Hello(fullname)
+			<p>Current date and time: { time.Now().Format("2006-01-02 15:04:05") }</p>
+		</body>
+	</html>
+}
+
+var greeting = "Hello"
+
+templ Hello(fullname string) {
+	<h style="font-size:200%;" onClick={ alertme() }>{ greeting } from { fullname }!</h>
+}
